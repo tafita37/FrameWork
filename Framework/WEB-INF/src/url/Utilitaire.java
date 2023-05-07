@@ -173,9 +173,4 @@ public class Utilitaire {
         }
         throw new Exception("Error 404 : Page not found");
     }
-
-/// Site url
-    public String site_url(String chemin) {
-        return this.completeUrl+chemin;
-    }
 }

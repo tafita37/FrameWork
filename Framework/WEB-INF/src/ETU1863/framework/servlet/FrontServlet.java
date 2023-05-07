@@ -2,6 +2,7 @@ package ETU1863.framework.servlet;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
@@ -17,6 +18,7 @@ public class FrontServlet
 extends HttpServlet {
     HashMap<String, Mapping> mappingUrls;
     String[] keys;
+    String dossier;
     
     public HashMap<String, Mapping> getMappingUrls() {
         return mappingUrls;
@@ -53,8 +55,10 @@ extends HttpServlet {
 
     public void init() {
         try {
+            ServletConfig config=this.getServletConfig();
+            this.dossier=config.getInitParameter("paquet");
             ServletContext context = getServletContext();
-            String fullPath = context.getRealPath("/WEB-INF/classes");
+            String fullPath = context.getRealPath("/WEB-INF/"+this.dossier);
             Utilitaire util=new Utilitaire(fullPath);
             this.mappingUrls=util.getClassWithUrlAnnotation();
             this.setKeys(this.getMappingUrls().keySet().toArray());
@@ -63,37 +67,12 @@ extends HttpServlet {
         }
     } 
 
-    // public String site_url(String annot)
-    // throws Exception {
-    //     ServletContext context=this.getServletContext();
-    //     String fullPath=context.getRealPath("/WEB-INF");
-    //     try {
-    //         File fichierXML = new File(fullPath+"/config.xml");
-    //         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-    //         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-    //         Document document = dBuilder.parse(fichierXML);
-    //         document.getDocumentElement().normalize();
-    //         NodeList nodeList = document.getElementsByTagName("site");
-    //         for (int temp = 0; temp < nodeList.getLength(); temp++) {
-    //             Node node = nodeList.item(temp);
-    //             if (node.getNodeType() == Node.ELEMENT_NODE) {
-    //                 Element element = (Element) node;
-    //                 return element.getElementsByTagName("url").item(0).getTextContent()+annot;
-    //             }
-    //         }
-    //         throw new Exception("N'oubliez pas d'ecrire dans le fichier config.xml la base_url de votre projet");
-    //     } catch (Exception e) {
-    //         throw e;
-    //     }
-    // }
-
     public void setAttribute(HttpServletRequest request, ModelView md)
     throws Exception {
         Object[] keys=md.getData().keySet().toArray();
         for(int i=0; i<keys.length; i++) {
             request.setAttribute((String) keys[i], md.getData().get(keys[i]));
         }
-        // request.setAttribute("Reference", this);
     }
 
     public String firstLetterMaj(String charact) {
@@ -149,26 +128,73 @@ extends HttpServlet {
         }
     }
 
+    public boolean hasOneParameter(Object ob, String method)
+    throws Exception {
+        Method[] methods=ob.getClass().getDeclaredMethods();
+        for(int i=0; i<methods.length; i++) {
+            if(methods[i].getName().compareTo(method)==0&&(methods[0].getReturnType()==ModelView.class)) {
+                throw new Exception("La method "+methods[i].getName()+" doit retourner une instance de l'objet ModelView");
+            }
+            if(methods[i].getName().compareTo(method)==0&&methods[i].getParameterCount()==1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String getParameterGetName(HttpServletRequest request, Utilitaire util) {
+        return util.getUrlGet().split("=")[0];
+    }
+    
+    public ModelView invokeMethodWithOneParameter(HttpServletRequest request, Object ob, String method, Utilitaire util)
+    throws Exception {
+        String varGet=this.getParameterGetName(request, util);
+        try {
+            return (ModelView) ob.getClass().getDeclaredMethod(method, int.class).invoke(ob, Integer.parseInt(request.getParameter(varGet)));
+        } catch (Exception e1) {
+            try {
+                return (ModelView) ob.getClass().getDeclaredMethod(method, double.class).invoke(ob, Double.parseDouble(request.getParameter(varGet)));
+            } catch (Exception e2) {
+                try {
+                    return (ModelView) ob.getClass().getDeclaredMethod(method, float.class).invoke(ob, Float.parseFloat(request.getParameter(varGet)));
+                } catch (Exception e3) {
+                    try {
+                        return (ModelView) ob.getClass().getDeclaredMethod(method, long.class).invoke(ob, Long.parseLong(request.getParameter(varGet)));
+                    } catch (Exception e4) {
+                        try {
+                            return (ModelView) ob.getClass().getDeclaredMethod(method, boolean.class).invoke(ob, Boolean.parseBoolean(request.getParameter(varGet)));
+                        } catch (Exception e5) {
+                            try {
+                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                                return (ModelView) ob.getClass().getDeclaredMethod(method, Date.class).invoke(ob, sdf.parse(request.getParameter(varGet)));
+                            } catch (Exception e6) {
+                                try {
+                                    return (ModelView) ob.getClass().getDeclaredMethod(method, String.class).invoke(ob, request.getParameter(varGet));
+                                } catch (Exception e7) {
+                                    throw new Exception("Le type ne correspond pas a la variable");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public ModelView getCorrespondingModelView(HttpServletRequest request)
     throws Exception {
         String queryString = request.getQueryString();
         StringBuffer requestURL = request.getRequestURL();
         ServletContext context = getServletContext();
-        String fullPath = context.getRealPath("/WEB-INF/classes");
+        String fullPath = context.getRealPath("/WEB-INF/"+this.dossier);
         Utilitaire util=new Utilitaire(queryString, requestURL, fullPath);
         for(int i=0; i<this.getKeys().length; i++) {
             if(keys[i].toString().compareTo(util.getQueryString())==0) {
                 Class<?> classe=util.getClassByName(mappingUrls.get(keys[i]).getClassName());
                 Object ob=classe.newInstance();
-                // String[] setters=this.getSettersMethods(ob);
-                // for(int j=0; j<setters.length; j++) {
-                //     if(request.getParameter(ob.getClass().getDeclaredFields()[j].getName())!=null) {
-                //         ob.getClass().getDeclaredMethod(setters[j], String.class).invoke(ob, request.getParameter(ob.getClass().getDeclaredFields()[j].getName()));
-                //     }
-                // }
                 this.parseString(ob, request);
-                if(!(ob.getClass().getDeclaredMethod(mappingUrls.get(keys[i]).getMethod()).invoke(ob) instanceof ModelView)) {
-                    throw new Exception("La method "+ob.getClass().getDeclaredMethod(mappingUrls.get(keys[i]).getMethod()).getName()+" doit retourner un objet de type ModelView");
+                if(this.hasOneParameter(ob, mappingUrls.get(keys[i]).getMethod())) {
+                    return this.invokeMethodWithOneParameter(request, ob, mappingUrls.get(keys[i]).getMethod(), util);
                 }
                 return (ModelView) ob.getClass().getDeclaredMethod(mappingUrls.get(keys[i]).getMethod()).invoke(ob);
             }

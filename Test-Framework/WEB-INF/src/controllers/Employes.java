@@ -69,10 +69,10 @@ public class Employes {
 
 /// Deuxième test
     @Url(link = "test")
-    public ModelView allEmp()
+    public ModelView allEmp(int id)
     throws Exception {
         ModelView result=new ModelView("test.jsp");
-        result.addItem("employe", new Employes(id_employes, nom, prenom));
+        result.addItem("employe", this);
         return result;
     }
 }
