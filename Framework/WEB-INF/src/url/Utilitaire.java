@@ -64,6 +64,24 @@ public class Utilitaire {
         this.generalPath=nouveau;
     }
 
+/// Obtenir l'url pattern
+    public void setQueryString(StringBuffer requestURL) {
+        String url=requestURL.toString();
+        url=url.split("//")[1];
+        String result="";
+        for(int i=2; i<url.split("/").length-1; i++) {
+            result+=url.split("/")[i]+"/";
+        }
+        if(url.split("/").length-1>=2) {
+            result+=url.split("/")[url.split("/").length-1];
+        }
+        if(result.length()==0) {
+            this.setQueryString("/");
+        } else {
+            this.setQueryString(result);
+        }
+    }
+
 /// Constructeurs
     public Utilitaire() {}
 
@@ -77,15 +95,7 @@ public class Utilitaire {
         String url=requestURL.toString();
         this.setCompleteUrl(url.substring(0, url.length()-1));
         this.setUrlGet(urlGet);
-        url=url.split("//")[1];
-        String result="";
-        for(int i=2; i<url.split("/").length-1; i++) {
-            result+=url.split("/")[i]+"/";
-        }
-        if(url.split("/").length-1>=2) {
-            result+=url.split("/")[url.split("/").length-1];
-        }
-        this.setQueryString("/"+result);
+        this.setQueryString(requestURL);
         this.setGeneralPath(generalPath);
     }
 
