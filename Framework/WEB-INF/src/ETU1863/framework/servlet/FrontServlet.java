@@ -1,17 +1,22 @@
 package ETU1863.framework.servlet;
 
 import java.io.*;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Map;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.xml.parsers.*;
 import org.w3c.dom.*;
 import ETU1863.framework.*;
+import annotation.Parameters;
+import annotation.Url;
 import url.*;
 
 public class FrontServlet
@@ -24,20 +29,8 @@ extends HttpServlet {
         return mappingUrls;
     }
 
-    public void setMappingUrls(HashMap<String, Mapping> mappingUrls) {
-        this.mappingUrls = mappingUrls;
-    }
-
     public String[] getKeys() {
         return this.keys;
-    }
-
-    public void setKeys(String[] nouveau)
-    throws Exception {
-        if(nouveau==null) {
-            throw new Exception("Les cles ne peuvent etre null");
-        }
-        this.keys=nouveau;
     }
 
     public void setKeys(Object[] nouveau)
@@ -65,120 +58,6 @@ extends HttpServlet {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    } 
-
-    public void setAttribute(HttpServletRequest request, ModelView md)
-    throws Exception {
-        Object[] keys=md.getData().keySet().toArray();
-        for(int i=0; i<keys.length; i++) {
-            request.setAttribute((String) keys[i], md.getData().get(keys[i]));
-        }
-    }
-
-    public String firstLetterMaj(String charact) {
-        return charact.toUpperCase().substring(0, 1)+charact.substring(1, charact.length());
-    }
-
-    public String[] getSettersMethods(Object ob) {
-        String[] result=new String[ob.getClass().getDeclaredFields().length];
-        String maj="";
-        for(int i=0; i<result.length; i++) {
-            maj=this.firstLetterMaj(ob.getClass().getDeclaredFields()[i].getName());
-            result[i]="set"+maj;
-        }
-        return result;
-    } 
-
-    public void parseString(Object ob, HttpServletRequest request)
-    throws Exception {
-        String[] setters=this.getSettersMethods(ob);
-        for(int j=0; j<setters.length; j++) {
-            if(request.getParameter(ob.getClass().getDeclaredFields()[j].getName())!=null) {
-                try {
-                    ob.getClass().getDeclaredMethod(setters[j], int.class).invoke(ob, Integer.parseInt(request.getParameter(ob.getClass().getDeclaredFields()[j].getName())));
-                } catch (Exception e1) {
-                    try {
-                        ob.getClass().getDeclaredMethod(setters[j], double.class).invoke(ob, Double.parseDouble(request.getParameter(ob.getClass().getDeclaredFields()[j].getName())));
-                    } catch (Exception e2) {
-                        try {
-                            ob.getClass().getDeclaredMethod(setters[j], float.class).invoke(ob, Float.parseFloat(request.getParameter(ob.getClass().getDeclaredFields()[j].getName())));
-                        } catch (Exception e3) {
-                            try {
-                                ob.getClass().getDeclaredMethod(setters[j], long.class).invoke(ob, Long.parseLong(request.getParameter(ob.getClass().getDeclaredFields()[j].getName())));
-                            } catch (Exception e4) {
-                                try {
-                                    ob.getClass().getDeclaredMethod(setters[j], boolean.class).invoke(ob, Boolean.parseBoolean(request.getParameter(ob.getClass().getDeclaredFields()[j].getName())));
-                                } catch (Exception e5) {
-                                    try {
-                                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                                        ob.getClass().getDeclaredMethod(setters[j], Date.class).invoke(ob, sdf.parse(request.getParameter(ob.getClass().getDeclaredFields()[j].getName())));
-                                    } catch (Exception e6) {
-                                        try {
-                                            ob.getClass().getDeclaredMethod(setters[j], String.class).invoke(ob, request.getParameter(ob.getClass().getDeclaredFields()[j].getName()));
-                                        } catch (Exception e7) {
-                                            throw new Exception("Le type ne correspond pas a la variable");
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    public boolean hasOneParameter(Object ob, String method)
-    throws Exception {
-        Method[] methods=ob.getClass().getDeclaredMethods();
-        for(int i=0; i<methods.length; i++) {
-            if(methods[i].getName().compareTo(method)==0&&(methods[0].getReturnType()==ModelView.class)) {
-                throw new Exception("La method "+methods[i].getName()+" doit retourner une instance de l'objet ModelView");
-            }
-            if(methods[i].getName().compareTo(method)==0&&methods[i].getParameterCount()==1) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public String getParameterGetName(HttpServletRequest request, Utilitaire util) {
-        return util.getUrlGet().split("=")[0];
-    }
-    
-    public ModelView invokeMethodWithOneParameter(HttpServletRequest request, Object ob, String method, Utilitaire util)
-    throws Exception {
-        String varGet=this.getParameterGetName(request, util);
-        try {
-            return (ModelView) ob.getClass().getDeclaredMethod(method, int.class).invoke(ob, Integer.parseInt(request.getParameter(varGet)));
-        } catch (Exception e1) {
-            try {
-                return (ModelView) ob.getClass().getDeclaredMethod(method, double.class).invoke(ob, Double.parseDouble(request.getParameter(varGet)));
-            } catch (Exception e2) {
-                try {
-                    return (ModelView) ob.getClass().getDeclaredMethod(method, float.class).invoke(ob, Float.parseFloat(request.getParameter(varGet)));
-                } catch (Exception e3) {
-                    try {
-                        return (ModelView) ob.getClass().getDeclaredMethod(method, long.class).invoke(ob, Long.parseLong(request.getParameter(varGet)));
-                    } catch (Exception e4) {
-                        try {
-                            return (ModelView) ob.getClass().getDeclaredMethod(method, boolean.class).invoke(ob, Boolean.parseBoolean(request.getParameter(varGet)));
-                        } catch (Exception e5) {
-                            try {
-                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                                return (ModelView) ob.getClass().getDeclaredMethod(method, Date.class).invoke(ob, sdf.parse(request.getParameter(varGet)));
-                            } catch (Exception e6) {
-                                try {
-                                    return (ModelView) ob.getClass().getDeclaredMethod(method, String.class).invoke(ob, request.getParameter(varGet));
-                                } catch (Exception e7) {
-                                    throw new Exception("Le type ne correspond pas a la variable");
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     public ModelView getCorrespondingModelView(HttpServletRequest request)
@@ -192,11 +71,8 @@ extends HttpServlet {
             if(keys[i].toString().compareTo(util.getQueryString())==0) {
                 Class<?> classe=util.getClassByName(mappingUrls.get(keys[i]).getClassName());
                 Object ob=classe.newInstance();
-                this.parseString(ob, request);
-                if(this.hasOneParameter(ob, mappingUrls.get(keys[i]).getMethod())) {
-                    return this.invokeMethodWithOneParameter(request, ob, mappingUrls.get(keys[i]).getMethod(), util);
-                }
-                return (ModelView) ob.getClass().getDeclaredMethod(mappingUrls.get(keys[i]).getMethod()).invoke(ob);
+                Utilitaire.parseString(ob, request);
+                return Utilitaire.invokeMethod(request, ob, keys[i].toString());
             }
         }
         throw new Exception("Error 404 : Page not found");
@@ -207,7 +83,7 @@ extends HttpServlet {
         PrintWriter pr=response.getWriter();
         try {
             ModelView md=this.getCorrespondingModelView(request);
-            this.setAttribute(request, md);
+            Utilitaire.setAttribute(request, md);
             RequestDispatcher dispat=request.getRequestDispatcher(md.getView());
             dispat.forward(request, response);
         } catch (Exception e) {

@@ -44,7 +44,8 @@ public class Employes {
 /*------------------------------------------Fonctions principales------------------------------------------ */
 /// Find all
     @Url(link = "allEmp")
-    public String findAll() {
+    @Parameters(args={"idEmp"})
+    public String findAll(int idEmp) {
         return "index.jsp";
     }
 }
