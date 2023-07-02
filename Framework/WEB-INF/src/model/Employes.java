@@ -2,7 +2,8 @@ package model;
 import annotation.*;
 public class Employes {
     int id_employes;
-    String nom;
+    String nom="coco";
+    int age=18;
 
 /*----------------------------------------Fonctions prérequis---------------------------------------- */
 /// Getters and setters

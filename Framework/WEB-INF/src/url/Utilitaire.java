@@ -1,20 +1,15 @@
 package url;
 
 import ETU1863.framework.*;
-import ETU1863.framework.servlet.FrontServlet;
 import annotation.*;
 import upload.FileUpload;
-
 import java.io.*;
 import java.util.*;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
-
 import java.lang.annotation.*;
 import java.lang.reflect.*;
 import java.text.SimpleDateFormat;
-import java.lang.reflect.*;
 
 public class Utilitaire {
     String completeUrl;
@@ -143,6 +138,22 @@ public class Utilitaire {
                     String link=(String) url.getClass().getMethod("link").invoke(url);
                     Mapping map=new Mapping(list_classes.get(i).getSimpleName(), list_method[j].getName());
                     result.put(link, map);
+                }
+            }
+        }
+        return result; 
+    }
+
+/// Récupérer toutes les classes avec annotations scope
+    public HashMap<Class<?>, Object> getClassWithScopeAnnotation()
+    throws Exception {
+        HashMap<Class<?>, Object> result=new HashMap<Class<?>, Object>();
+        List<Class<?>> list_classes=this.getAllClasses("");
+        for(int i=0; i<list_classes.size(); i++) {
+            if(list_classes.get(i).isAnnotationPresent(Scope.class)) {
+                Scope scope = list_classes.get(i).getAnnotation(Scope.class);
+                if(scope.singleton().compareToIgnoreCase("Singleton")==0) {
+                    result.put(list_classes.get(i), null);
                 }
             }
         }
@@ -337,5 +348,27 @@ public class Utilitaire {
             }
         }
         throw new Exception("Vous n'avez annote aucune methode de la class "+ob.getClass().getSimpleName());
+    }
+
+/// Setter des attributs à leurs valeurs par défauts
+    public static void setDefaultValue(Object ob)
+    throws Exception {
+        Field[] fields=ob.getClass().getDeclaredFields();
+        for(int i=0; i<fields.length; i++) {
+            fields[i].setAccessible(true);
+            if(fields[i].getType().isPrimitive()) {
+                if(fields[i].getType()==boolean.class) {
+                    fields[i].set(ob, false);
+                }
+                if(fields[i].getType()==byte.class||fields[i].getType()==short.class||fields[i].getType()==int.class||fields[i].getType()==long.class||fields[i].getType()==float.class||fields[i].getType()==double.class) {
+                    fields[i].set(ob, 0);
+                }
+                if(fields[i].getType()==char.class) {
+                    fields[i].set(ob, ' ');
+                }
+            } else {
+                fields[i].set(ob, null);
+            }
+        }
     }
 }
