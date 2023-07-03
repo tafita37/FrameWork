@@ -295,6 +295,21 @@ public class Utilitaire {
         }
     } 
 
+/// Traitement d'un HashMap sesion
+    public static void treatSession(HttpServletRequest request, Object ob, Field field, String setter)
+    throws Exception {
+        if(field.getType()!=HashMap.class) {
+            throw new Exception("L'attribut "+field.getName()+" doit retourner un HashMap");
+        }
+        HashMap<String, Object> vSession=new HashMap<String, Object>();
+        Enumeration<String> attributes=request.getSession().getAttributeNames();
+        while(attributes.hasMoreElements()) {
+            String attribut = attributes.nextElement();
+            vSession.put(attribut, request.getSession().getAttribute(attribut));
+        }
+        ob.getClass().getDeclaredMethod(setter, HashMap.class).invoke(ob, vSession);
+    }
+
 /// Setter chaque attribut de la class Model
     public static void parseString(Object ob, HttpServletRequest request)
     throws Exception {
@@ -326,6 +341,9 @@ public class Utilitaire {
                 } 
             } else if(request.getParameter(ob.getClass().getDeclaredFields()[j].getName())!=null) {
                 Utilitaire.castField(ob.getClass().getDeclaredFields()[j], request.getParameter(ob.getClass().getDeclaredFields()[j].getName()), setters[j], ob);
+            }  
+            if(ob.getClass().getDeclaredFields()[j].isAnnotationPresent(SessionField.class)) {
+                Utilitaire.treatSession(request, ob, ob.getClass().getDeclaredFields()[j], setters[j]);
             }
         }
     }
