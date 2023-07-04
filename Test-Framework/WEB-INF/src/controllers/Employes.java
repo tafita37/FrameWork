@@ -123,4 +123,17 @@ public class Employes {
         System.out.println(this.getSession().get("role"));
         return md;
     }
+
+/// AllEmp
+    @Url(link = "allEmp.do")
+    @Json
+    public Employes[] getAllEmployes()
+    throws Exception {
+        Employes[] result=new Employes[4];
+        result[0]=new Employes(1, "nom", "prenom");
+        result[1]=new Employes(2, "nom", "prenom");
+        result[2]=new Employes(3, "nom", "prenom");
+        result[3]=new Employes(4, "nom", "prenom");
+        return result;
+    }
 }
