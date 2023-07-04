@@ -93,18 +93,18 @@ public class Employes {
 
 /*------------------------------------------Fonctions principales------------------------------------------ */
 /// Find all
-    @Url(link = "./")
+    @Url(link = ".do")
     public ModelView completeInformation()
     throws Exception {
-        ModelView result=new ModelView("formulaire.jsp");
-        result.setJson(true);
+        ModelView result=new ModelView("formulaire.html");
+        // result.setJson(true);
         result.addItem("testJson", new Employes());
         result.addItem("testJson2", "new Employes()");
         return result;
     }
 
 /// Deuxième test
-    @Url(link = "test")
+    @Url(link = "test.do")
     public ModelView allEmp()
     throws Exception {
         ModelView result=new ModelView("test.jsp");
@@ -116,7 +116,7 @@ public class Employes {
 
 /// Autorisation
     @Auth(role = "admin", exception = "Seule l'admin peut acceder a la fonction admin")
-    @Url(link = "admin")
+    @Url(link = "admin.do")
     public ModelView admin()
     throws Exception {
         ModelView md=new ModelView("admin.jsp");
