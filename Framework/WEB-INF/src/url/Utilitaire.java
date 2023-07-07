@@ -129,7 +129,12 @@ public class Utilitaire {
         File f=new File(pathName);
         for(int i=0; i<f.listFiles().length; i++) {
             if(f.listFiles()[i].isFile()&&f.listFiles()[i].getName().endsWith(".class")) {
-                String almostCompletClass=pathName.replace("\\", "-").split(this.getGeneralPath().replace("\\", "-"))[1];
+                String almostCompletClass=null;
+                if(pathName.replace("\\", "-").split(this.getGeneralPath().replace("\\", "-")).length>1) {
+                    almostCompletClass=pathName.replace("\\", "-").split(this.getGeneralPath().replace("\\", "-"))[1];
+                } else {
+                    almostCompletClass="";
+                }
                 String packageName="";
                 for(int j=1; j<almostCompletClass.split("-").length; j++) {
                     packageName+=almostCompletClass.split("-")[j]+".";
@@ -375,7 +380,8 @@ public class Utilitaire {
                 return false;
             }
             if(method.getAnnotation(Auth.class).role().compareTo((String) request.getSession().getAttribute(Utilitaire.getRole()))==0) {
-               return true; 
+                System.out.println(request.getSession().getAttribute(Utilitaire.getRole()));
+                return true; 
             }
             return false;
         }
