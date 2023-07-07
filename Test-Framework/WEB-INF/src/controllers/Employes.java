@@ -177,6 +177,7 @@ public class Employes {
     public ModelView sprint12()
     throws Exception {
         ModelView resut=new ModelView("sprint-12.jsp");
+        resut.addItem("session", session);
         return resut;
     }
 
@@ -191,7 +192,8 @@ public class Employes {
     }
 
 /// Sprint 14
-    @Url(link = "sprint-12.do")
+    @Url(link = "sprint-14.do")
+    @Json
     public Employes[] sprint14()
     throws Exception {
         Employes[] resut=new Employes[3];

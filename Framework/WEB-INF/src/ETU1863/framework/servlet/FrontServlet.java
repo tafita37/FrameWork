@@ -155,6 +155,7 @@ extends HttpServlet {
                 }
             }
         } catch (Exception e) {
+            pr=response.getWriter();
             e.printStackTrace();
             pr.println(e.getMessage());
         }
