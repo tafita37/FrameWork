@@ -49,6 +49,8 @@ Contraintes d'utilisation :
     - Si vous souhaitez envoyer des données de votre controller vers votre vue utilisateur la méthode addItem de votre ModelView et récupérer et caster le dans la vue à l'aide de request.getAttribute()
     - Pour envoyer des données de votre vue (variable de lien ou de formulaire) vers votre controller il y a deux possibilités :
         1) Mettre en attribut du controller les noms de chaque variable de votr vue (le cast est automatique)
+            NB : Votre class Controller devra obligatoirement contenir un constructeur vide
+                 Vos setters doivent être de la forme : set<<Nom de l'attribut>> avec le nom de l'attribut majuscule
         2) Mettre ces variables en arguments et utiliser l'annotation @Parameter(args={ << nom des variables de liens >> })
             NB : l'ordre des noms de variables dans l'annotation @Parameter et celle des parametres de votre method doivent impérativement correspondre
     - Si vous souhaitez uploader un fichier rajouter un attribut de type FileUpload dans votre controller et utiliser le contructeur FileUpload(String) pour définir l'emplacement ou ira le fichier 
